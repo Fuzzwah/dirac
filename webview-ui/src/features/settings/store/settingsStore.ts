@@ -56,7 +56,6 @@ interface SettingsState {
 	mode: string
 	platform: string
 	environment: Environment
-	telemetrySetting: string
 	distinctId: string
 	planActSeparateModelsSetting: boolean
 	enableCheckpointsSetting: boolean
@@ -160,7 +159,6 @@ export const useSettingsStore = create<SettingsState>((set) => ({
 	mode: "act",
 	platform: DEFAULT_PLATFORM,
 	environment: Environment.production,
-	telemetrySetting: "unset",
 	distinctId: "",
 	planActSeparateModelsSetting: true,
 	enableCheckpointsSetting: true,

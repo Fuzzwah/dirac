@@ -16,7 +16,6 @@ import { isOpenaiReasoningEffort, Mode, OPENAI_REASONING_EFFORT_OPTIONS, OpenaiR
 export type { Mode, OpenaiReasoningEffort }
 export { OPENAI_REASONING_EFFORT_OPTIONS, isOpenaiReasoningEffort }
 
-import { TelemetrySetting } from "./TelemetrySetting"
 // webview will hold state
 export interface ExtensionMessage {
 	type: "grpc_response" // New type for gRPC responses
@@ -55,7 +54,6 @@ export interface ExtensionState {
 	environment?: Environment
 	shouldShowAnnouncement: boolean
 	taskHistory: HistoryItem[]
-	telemetrySetting: TelemetrySetting
 	shellIntegrationTimeout: number
 	terminalReuseEnabled?: boolean
 	terminalOutputLineLimit: number

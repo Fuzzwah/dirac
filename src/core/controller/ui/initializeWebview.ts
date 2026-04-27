@@ -1,6 +1,5 @@
 import { Empty, EmptyRequest } from "@shared/proto/dirac/common"
 import { OpenRouterCompatibleModelInfo } from "@shared/proto/dirac/models"
-import { telemetryService } from "@/services/telemetry"
 import { Logger } from "@/shared/services/Logger"
 import { GlobalStateAndSettings } from "@/shared/storage/state-keys"
 import type { Controller } from "../index"
@@ -242,12 +241,6 @@ export async function initializeWebview(controller: Controller, _request: EmptyR
 		// (see normalizeApiConfiguration > openrouter)
 		// Prefetch marketplace and OpenRouter models
 
-		// Initialize telemetry service with user's current setting
-		controller.getStateToPostToWebview().then((state) => {
-			const { telemetrySetting } = state
-			const isOptedIn = telemetrySetting !== "disabled"
-			telemetryService.updateTelemetryState(isOptedIn)
-		})
 
 		return Empty.create({})
 	} catch (error) {

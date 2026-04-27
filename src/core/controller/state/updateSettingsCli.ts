@@ -4,7 +4,6 @@ import { Empty } from "@shared/proto/dirac/common"
 import { PlanActMode, UpdateSettingsRequestCli } from "@shared/proto/dirac/state"
 import { convertProtoToApiProvider } from "@shared/proto-conversions/models/api-configuration-conversion"
 import { Settings } from "@shared/storage/state-keys"
-import { TelemetrySetting } from "@shared/TelemetrySetting"
 import { DiracEnv } from "@/config"
 import { HostProvider } from "@/hosts/host-provider"
 import { ShowMessageType } from "@/shared/proto/host/window"
@@ -42,8 +41,7 @@ export async function updateSettingsCli(controller: Controller, request: UpdateS
 				customPrompt,
 				planModeApiProvider,
 				actModeApiProvider,
-				// Fields requiring special logic (telemetry, merging, etc.)
-				telemetrySetting,
+				// Fields requiring special logic (merging, etc.)
 				yoloModeToggled,
 				useAutoCondense,
 				diracWebToolsEnabled,
@@ -125,10 +123,6 @@ export async function updateSettingsCli(controller: Controller, request: UpdateS
 				controller.task.api = buildApiHandler(apiConfigForHandler, currentMode)
 			}
 
-			// Update telemetry setting
-			if (telemetrySetting) {
-				await controller.updateTelemetrySetting(telemetrySetting as TelemetrySetting)
-			}
 
 			// Update yolo mode setting (requires telemetry)
 			if (yoloModeToggled !== undefined) {

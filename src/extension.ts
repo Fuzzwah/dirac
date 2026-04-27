@@ -49,7 +49,6 @@ import { VscodeDiracWebviewProvider } from "./hosts/vscode/VscodeWebviewProvider
 import { exportVSCodeStorageToSharedFiles } from "./hosts/vscode/vscode-to-file-migration"
 import { ExtensionRegistryInfo } from "./registry"
 import { SymbolIndexService } from "./services/symbol-index/SymbolIndexService"
-import { telemetryService } from "./services/telemetry"
 import { SharedUriHandler, TASK_URI_PATH } from "./services/uri/SharedUriHandler"
 import { ShowMessageType } from "./shared/proto/host/window"
 import { fileExistsAtPath } from "./utils/fs"
@@ -388,7 +387,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 			// Send show webview event with preserveEditorFocus flag
 			sendShowWebviewEvent(preserveEditorFocus)
-			telemetryService.captureButtonClick("command_focusChatInput", webview.controller?.task?.ulid)
 		}),
 	)
 
@@ -497,7 +495,6 @@ ${ctx.cellJson || "{}"}
 	context.subscriptions.push(
 		vscode.commands.registerCommand(commands.Walkthrough, async () => {
 			await vscode.commands.executeCommand("workbench.action.openWalkthrough", `${context.extension.id}#DiracWalkthrough`)
-			telemetryService.captureButtonClick("command_openWalkthrough")
 		}),
 	)
 
@@ -506,7 +503,6 @@ ${ctx.cellJson || "{}"}
 		vscode.commands.registerCommand(commands.ReconstructTaskHistory, async () => {
 			const { reconstructTaskHistory } = await import("./core/commands/reconstructTaskHistory")
 			await reconstructTaskHistory()
-			telemetryService.captureButtonClick("command_reconstructTaskHistory")
 		}),
 	)
 

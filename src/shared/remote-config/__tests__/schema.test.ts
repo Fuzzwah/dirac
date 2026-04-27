@@ -427,7 +427,6 @@ describe("Remote Config Schema", () => {
 		it("should accept valid complete remote config", () => {
 			const validConfig: RemoteConfig = {
 				version: "v1",
-				telemetryEnabled: true,
 				yoloModeAllowed: false,
 				providerSettings: {
 					OpenAiCompatible: {
@@ -460,11 +459,9 @@ describe("Remote Config Schema", () => {
 		it("should accept config with general settings only", () => {
 			const configWithGeneralSettings = {
 				version: "v1",
-				telemetryEnabled: false,
 				yoloModeAllowed: true,
 			}
 			const result = RemoteConfigSchema.parse(configWithGeneralSettings)
-			expect(result.telemetryEnabled).to.equal(false)
 			expect(result.yoloModeAllowed).to.equal(true)
 		})
 
@@ -498,15 +495,6 @@ describe("Remote Config Schema", () => {
 			expect(() => RemoteConfigSchema.parse({ version: 123 })).to.throw()
 		})
 
-		it("should reject invalid telemetry setting type", () => {
-			expect(() =>
-				RemoteConfigSchema.parse({
-					version: "v1",
-					telemetryEnabled: "yes",
-				}),
-			).to.throw()
-		})
-
 		it("should allow undefined optional provider settings", () => {
 			const config = {
 				version: "v1",
@@ -518,23 +506,7 @@ describe("Remote Config Schema", () => {
 		it("should handle complete config with all fields", () => {
 			const config = {
 				version: "v1",
-				telemetryEnabled: true,
 				yoloModeAllowed: true,
-				openTelemetryEnabled: true,
-				openTelemetryMetricsExporter: "otlp",
-				openTelemetryLogsExporter: "otlp",
-				openTelemetryOtlpProtocol: "http/json",
-				openTelemetryOtlpEndpoint: "http://localhost:4318",
-				openTelemetryOtlpMetricsProtocol: "http/json",
-				openTelemetryOtlpMetricsEndpoint: "http://localhost:4318/v1/metrics",
-				openTelemetryOtlpLogsProtocol: "http/json",
-				openTelemetryOtlpLogsEndpoint: "http://localhost:4318/v1/logs",
-				openTelemetryMetricExportInterval: 60000,
-				openTelemetryOtlpInsecure: false,
-				openTelemetryLogBatchSize: 512,
-				openTelemetryLogBatchTimeout: 5000,
-				openTelemetryLogMaxQueueSize: 2048,
-				openTelemetryOtlpHeaders: { test: "string" },
 				globalRules: [
 					{
 						alwaysEnabled: true,
@@ -644,7 +616,6 @@ describe("Remote Config Schema", () => {
 
 			// Verify all top-level fields
 			expect(result.version).to.equal("v1")
-			expect(result.telemetryEnabled).to.equal(true)
 			expect(result.yoloModeAllowed).to.equal(true)
 
 			// Verify OpenAI Compatible settings
@@ -682,22 +653,6 @@ describe("Remote Config Schema", () => {
 			expect(result.providerSettings?.Anthropic?.models?.[1].thinkingBudgetTokens).to.equal(1600)
 			expect(result.providerSettings?.Anthropic?.baseUrl).to.equal("https://example.dirac.run")
 
-			// Verify OpenTelemetry settings
-			expect(result.openTelemetryEnabled).to.equal(true)
-			expect(result.openTelemetryMetricsExporter).to.equal("otlp")
-			expect(result.openTelemetryLogsExporter).to.equal("otlp")
-			expect(result.openTelemetryOtlpProtocol).to.equal("http/json")
-			expect(result.openTelemetryOtlpEndpoint).to.equal("http://localhost:4318")
-			expect(result.openTelemetryOtlpMetricsProtocol).to.equal("http/json")
-			expect(result.openTelemetryOtlpMetricsEndpoint).to.equal("http://localhost:4318/v1/metrics")
-			expect(result.openTelemetryOtlpLogsProtocol).to.equal("http/json")
-			expect(result.openTelemetryOtlpLogsEndpoint).to.equal("http://localhost:4318/v1/logs")
-			expect(result.openTelemetryMetricExportInterval).to.equal(60000)
-			expect(result.openTelemetryOtlpInsecure).to.equal(false)
-			expect(result.openTelemetryLogBatchSize).to.equal(512)
-			expect(result.openTelemetryLogBatchTimeout).to.equal(5000)
-			expect(result.openTelemetryLogMaxQueueSize).to.equal(2048)
-			expect(result.openTelemetryOtlpHeaders).to.deep.equal({ test: "string" })
 
 			// Verify Global Instructions settings
 			expect(result.globalRules).to.have.lengthOf(2)
@@ -723,7 +678,6 @@ describe("Remote Config Schema", () => {
 		it("should properly infer RemoteConfig type", () => {
 			const config: RemoteConfig = {
 				version: "v1",
-				telemetryEnabled: true,
 			}
 			// TypeScript compilation will fail if type inference is wrong
 			expect(config.version).to.be.a("string")
@@ -734,7 +688,6 @@ describe("Remote Config Schema", () => {
 				version: "v1",
 				// All other fields are optional and can be undefined
 			}
-			expect(config.telemetryEnabled).to.be.undefined
 			expect(config.providerSettings).to.be.undefined
 		})
 	})

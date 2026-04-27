@@ -2,7 +2,6 @@ import { clearOnboardingModelsCache, getDiracOnboardingModels } from "@/core/con
 import type { OnboardingModel } from "@/shared/proto/dirac/state"
 import { FEATURE_FLAGS, FeatureFlag, FeatureFlagDefaultValue } from "@/shared/services/feature-flags/feature-flags"
 import { Logger } from "@/shared/services/Logger"
-import { telemetryService } from "../telemetry"
 import type { FeatureFlagPayload, FeatureFlagsAndPayloads, IFeatureFlagsProvider } from "./providers/IFeatureFlagsProvider"
 
 // Default cache time-to-live (TTL) for feature flags - an hour
@@ -73,16 +72,6 @@ export class FeatureFlagsService {
 			const payload = this.cacheInfo.flagsPayload?.featureFlagPayloads?.[flagName]
 			const flagValue = this.cacheInfo.flagsPayload?.featureFlags?.[flagName]
 			const value = payload ?? flagValue ?? FeatureFlagDefaultValue[flagName] ?? undefined
-
-			if (!this.cache.has(flagName) || this.cache.get(flagName) !== value) {
-				telemetryService.capture({
-					event: "$feature_flag_called",
-					properties: {
-						$feature_flag: flagName,
-						$feature_flag_response: flagValue,
-					},
-				})
-			}
 
 			return value
 		} catch (error) {

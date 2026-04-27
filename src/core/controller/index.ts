@@ -12,7 +12,6 @@ import type { ExtensionState, Platform } from "@shared/ExtensionMessage"
 import type { HistoryItem } from "@shared/HistoryItem"
 import { type Settings } from "@shared/storage/state-keys"
 import type { Mode } from "@shared/storage/types"
-import type { TelemetrySetting } from "@shared/TelemetrySetting"
 import { fileExistsAtPath } from "@utils/fs"
 import axios from "axios"
 import fs from "fs/promises"
@@ -225,27 +224,6 @@ export class Controller {
 		}
 	}
 
-	async updateTelemetrySetting(telemetrySetting: TelemetrySetting) {
-		// Get previous setting to detect state changes
-		const previousSetting = this.stateManager.getGlobalSettingsKey("telemetrySetting")
-		const wasOptedIn = previousSetting !== "disabled"
-		const isOptedIn = telemetrySetting !== "disabled"
-
-		// Capture opt-out event BEFORE updating (so it gets sent while telemetry is still enabled)
-		if (wasOptedIn && !isOptedIn) {
-			telemetryService.captureUserOptOut()
-		}
-
-		this.stateManager.setGlobalState("telemetrySetting", telemetrySetting)
-		telemetryService.updateTelemetryState(isOptedIn)
-
-		// Capture opt-in event AFTER updating (so telemetry is enabled to receive it)
-		if (!wasOptedIn && isOptedIn) {
-			telemetryService.captureUserOptIn()
-		}
-
-		await this.postStateToWebview()
-	}
 
 	async toggleActModeForYoloMode(): Promise<boolean> {
 		const modeToSwitchTo: Mode = "act"
@@ -614,7 +592,6 @@ export class Controller {
 		const yoloModeToggled = this.stateManager.getGlobalSettingsKey("yoloModeToggled")
 		const useAutoCondense = this.stateManager.getGlobalSettingsKey("useAutoCondense")
 		const subagentsEnabled = this.stateManager.getGlobalSettingsKey("subagentsEnabled")
-		const telemetrySetting = this.stateManager.getGlobalSettingsKey("telemetrySetting")
 		const planActSeparateModelsSetting = this.stateManager.getGlobalSettingsKey("planActSeparateModelsSetting")
 		const enableCheckpointsSetting = this.stateManager.getGlobalSettingsKey("enableCheckpointsSetting")
 		const globalDiracRulesToggles = this.stateManager.getGlobalSettingsKey("globalDiracRulesToggles")
@@ -700,7 +677,6 @@ export class Controller {
 			yoloModeToggled,
 			useAutoCondense,
 			subagentsEnabled,
-			telemetrySetting,
 			planActSeparateModelsSetting,
 			enableCheckpointsSetting: enableCheckpointsSetting ?? true,
 			platform,

@@ -46,16 +46,7 @@ async function main() {
 	console.log(`To publish: cd ${BUILD_DIR} && npm publish`)
 }
 
-function setupEnvironmentVariables() {
-	// Use a different API key for CLI error capturing, to redirect CLI errors to a different project
-	const cliErrorTrackingKey = process.env.CLI_ERROR_SERVICE_API_KEY
-	if (cliErrorTrackingKey) {
-		process.env.ERROR_SERVICE_API_KEY = cliErrorTrackingKey
-		// If we're sending to a different project, enable exception autocapture
-		process.env.ENABLE_ERROR_AUTOCAPTURE = "true"
-		log_verbose("Set ERROR_SERVICE_API_KEY for build")
-	}
-}
+function setupEnvironmentVariables() {}
 
 /**
  * Clean the build directory
