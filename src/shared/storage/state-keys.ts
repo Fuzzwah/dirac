@@ -5,7 +5,6 @@ import { DiracRulesToggles } from "@shared/dirac-rules"
 import { HistoryItem } from "@shared/HistoryItem"
 import { WorkspaceRoot } from "@shared/multi-root/types"
 import { Mode } from "@shared/storage/types"
-import { TelemetrySetting } from "@shared/TelemetrySetting"
 import { LanguageModelChatSelector } from "vscode"
 
 // ============================================================================
@@ -212,7 +211,6 @@ const USER_SETTINGS_FIELDS = {
 		default: DEFAULT_BROWSER_SETTINGS as BrowserSettings,
 		transform: (v: any) => ({ ...DEFAULT_BROWSER_SETTINGS, ...v }),
 	},
-	telemetrySetting: { default: "unset" as TelemetrySetting },
 	planActSeparateModelsSetting: { default: false as boolean, isComputed: true },
 	enableCheckpointsSetting: { default: true as boolean },
 	shellIntegrationTimeout: { default: 4000 as number },
@@ -235,17 +233,7 @@ const USER_SETTINGS_FIELDS = {
 	doubleCheckCompletionEnabled: { default: false as boolean },
 
 	// OpenTelemetry configuration
-	openTelemetryEnabled: { default: true as boolean },
-	openTelemetryMetricsExporter: { default: undefined as string | undefined },
-	openTelemetryLogsExporter: { default: undefined as string | undefined },
-	openTelemetryOtlpProtocol: { default: "http/json" as string | undefined },
-	openTelemetryOtlpEndpoint: { default: "http://localhost:4318" as string | undefined },
-	openTelemetryOtlpMetricsProtocol: { default: undefined as string | undefined },
-	openTelemetryOtlpMetricsEndpoint: { default: undefined as string | undefined },
-	openTelemetryOtlpLogsProtocol: { default: undefined as string | undefined },
-	openTelemetryOtlpLogsEndpoint: { default: undefined as string | undefined },
 	openTelemetryMetricExportInterval: { default: 60000 as number | undefined },
-	openTelemetryOtlpInsecure: { default: false as boolean | undefined },
 	openTelemetryLogBatchSize: { default: 512 as number | undefined },
 	openTelemetryLogBatchTimeout: { default: 5000 as number | undefined },
 	openTelemetryLogMaxQueueSize: { default: 2048 as number | undefined },

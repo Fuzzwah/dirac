@@ -46,24 +46,11 @@ interface TaskOptions {
 	subagents?: boolean
 }
 
-let telemetryDisposed = false
-
-async function disposeTelemetryServices(): Promise<void> {
-	if (telemetryDisposed) {
-		return
-	}
-
-	telemetryDisposed = true
-	const { telemetryService } = await import("@/services/telemetry")
-	await Promise.allSettled([telemetryService.dispose()])
-}
-
 async function disposeCliContext(ctx: CliContext): Promise<void> {
 	const { ErrorService } = await import("@/services/error/ErrorService")
 	await ctx.controller.stateManager.flushPendingState()
 	await ctx.controller.dispose()
 	await ErrorService.get().dispose()
-	await disposeTelemetryServices()
 }
 
 async function setModeScopedState(currentMode: "act" | "plan", setter: (mode: "act" | "plan") => void): Promise<void> {
@@ -130,7 +117,6 @@ async function normalizeMaxConsecutiveMistakes(value?: string): Promise<number |
 
 async function applyTaskOptions(options: TaskOptions): Promise<void> {
 	const { StateManager } = await import("@/core/storage/StateManager")
-	const { telemetryService } = await import("@/services/telemetry")
 	const { getProviderModelIdKey } = await import("@/shared/storage")
 	const { printWarning, printError, printInfo } = await import("./utils/display")
 	const { exit } = await import("node:process")
@@ -151,10 +137,8 @@ async function applyTaskOptions(options: TaskOptions): Promise<void> {
 	// Apply mode flag first so currentMode is correct for overrides
 	if (options.plan) {
 		stateManager.setSessionOverride("mode", "plan")
-		telemetryService.captureHostEvent("mode_flag", "plan")
 	} else if (options.act) {
 		stateManager.setSessionOverride("mode", "act")
-		telemetryService.captureHostEvent("mode_flag", "act")
 	}
 
 
@@ -193,9 +177,7 @@ async function applyTaskOptions(options: TaskOptions): Promise<void> {
 				stateManager.setSessionOverride(modelKey, options.model!)
 			}
 		})
-		telemetryService.captureHostEvent("model_flag", options.model)
 		if (options.provider) {
-			telemetryService.captureHostEvent("provider_flag", options.provider)
 		}
 	}
 
@@ -217,7 +199,6 @@ async function applyTaskOptions(options: TaskOptions): Promise<void> {
 			const thinkingKey = mode === "act" ? "actModeThinkingBudgetTokens" : "planModeThinkingBudgetTokens"
 			stateManager.setSessionOverride(thinkingKey, thinkingBudget)
 		})
-		telemetryService.captureHostEvent("thinking_flag", "true")
 	}
 
 	const reasoningEffort = await normalizeReasoningEffort(options.reasoningEffort)
@@ -226,33 +207,28 @@ async function applyTaskOptions(options: TaskOptions): Promise<void> {
 			const reasoningKey = mode === "act" ? "actModeReasoningEffort" : "planModeReasoningEffort"
 			stateManager.setSessionOverride(reasoningKey, reasoningEffort)
 		})
-		telemetryService.captureHostEvent("reasoning_effort_flag", reasoningEffort)
 	}
 
 	const maxConsecutiveMistakes = await normalizeMaxConsecutiveMistakes(options.maxConsecutiveMistakes)
 	if (maxConsecutiveMistakes !== undefined) {
 		stateManager.setSessionOverride("maxConsecutiveMistakes", maxConsecutiveMistakes)
-		telemetryService.captureHostEvent("max_consecutive_mistakes_flag", String(maxConsecutiveMistakes))
 	}
 
 	// Set yolo mode as a session-scoped override so AutoApprove picks it up,
 	// but it is never persisted to disk (setSessionOverride never touches pendingGlobalState).
 	if (options.yolo) {
 		stateManager.setSessionOverride("yoloModeToggled", true)
-		telemetryService.captureHostEvent("yolo_flag", "true")
 	}
 
 	// Set auto-approve-all as a session-scoped override so CLI flag does not
 	// persist user settings to disk.
 	if (options.autoApproveAll) {
 		stateManager.setSessionOverride("autoApproveAllToggled", true)
-		telemetryService.captureHostEvent("auto_approve_all_flag", "true")
 	}
 
 	// Set double-check completion based on flag
 	if (options.doubleCheckCompletion) {
 		stateManager.setSessionOverride("doubleCheckCompletionEnabled", true)
-		telemetryService.captureHostEvent("double_check_completion_flag", "true")
 	}
 
 	if (options.subagents) {
@@ -287,7 +263,7 @@ async function shouldUsePlainTextMode(options: TaskOptions): Promise<boolean> {
 }
 
 /**
- * Get the reason for using plain text mode (for telemetry).
+ * Get the reason for using plain text mode.
  */
 async function getPlainTextModeReason(options: TaskOptions): Promise<string> {
 	return (await getModeSelection(options)).reason
@@ -328,7 +304,6 @@ async function runTaskInPlainTextMode(
 ): Promise<never> {
 	const { isAuthConfigured } = await import("./utils/auth")
 	const { printWarning } = await import("./utils/display")
-	const { telemetryService } = await import("@/services/telemetry")
 	const { runPlainTextTask } = await import("./utils/plain-text-task")
 
 	// Set flag so shutdown handler knows not to clear Ink UI lines
@@ -344,7 +319,6 @@ async function runTaskInPlainTextMode(
 	}
 
 	const reason = await getPlainTextModeReason(options)
-	telemetryService.captureHostEvent("plain_text_mode", reason)
 
 	// Plain text mode: no Ink rendering, just clean text output
 	const success = await runPlainTextTask({
@@ -572,7 +546,6 @@ async function initializeCli(options: InitOptions): Promise<CliContext> {
 	const { getCliBinaryPath, DIRAC_CLI_DIR } = await import("./utils/path")
 	const { StateManager } = await import("@/core/storage/StateManager")
 	const { ErrorService } = await import("@/services/error/ErrorService")
-	const { telemetryService } = await import("@/services/telemetry")
 	const { SymbolIndexService } = await import("@/services/symbol-index/SymbolIndexService")
 
 
@@ -638,8 +611,6 @@ async function initializeCli(options: InitOptions): Promise<CliContext> {
 	const webview = HostProvider.get().createDiracWebviewProvider() as any
 	const controller = webview.controller as Controller
 
-	await telemetryService.captureExtensionActivated()
-	await telemetryService.captureHostEvent("dirac_cli", "initialized")
 
 	// =============== Symbol Index Service ===============
 	// Initialize symbol index for the project in background
@@ -689,7 +660,6 @@ async function runInkApp(element: any, cleanup: () => Promise<void>): Promise<vo
  */
 async function runTask(prompt: string, options: TaskOptions & { images?: string[] }, existingContext?: CliContext) {
 	const { parseImagesFromInput, processImagePaths } = await import("./utils/parser")
-	const { telemetryService } = await import("@/services/telemetry")
 	const { StateManager } = await import("@/core/storage/StateManager")
 	const { checkRawModeSupport } = await import("./context/StdinContext")
 	const React = (await import("react")).default
@@ -709,11 +679,8 @@ async function runTask(prompt: string, options: TaskOptions & { images?: string[
 	const taskPrompt = cleanPrompt || prompt
 
 	// Task without prompt starts in interactive mode
-	telemetryService.captureHostEvent("task_command", prompt ? "task" : "interactive")
 
-	// Capture piped stdin telemetry now that HostProvider is initialized
 	if (options.stdinWasPiped) {
-		telemetryService.captureHostEvent("piped", "detached")
 	}
 
 	// Apply shared task options (mode, model, thinking, yolo)
@@ -757,7 +724,6 @@ async function runTask(prompt: string, options: TaskOptions & { images?: string[
  */
 async function listHistory(options: { config?: string; limit?: number; page?: number }) {
 	const { StateManager } = await import("@/core/storage/StateManager")
-	const { telemetryService } = await import("@/services/telemetry")
 	const { printInfo } = await import("./utils/display")
 	const { checkRawModeSupport } = await import("./context/StdinContext")
 	const React = (await import("react")).default
@@ -773,7 +739,6 @@ async function listHistory(options: { config?: string; limit?: number; page?: nu
 	const totalCount = sortedHistory.length
 	const totalPages = Math.ceil(totalCount / limit)
 
-	telemetryService.captureHostEvent("history_command", "executed")
 
 	if (sortedHistory.length === 0) {
 		printInfo("No task history found.")
@@ -802,7 +767,6 @@ async function listHistory(options: { config?: string; limit?: number; page?: nu
  */
 async function showConfig(options: { config?: string }) {
 	const { StateManager } = await import("@/core/storage/StateManager")
-	const { telemetryService } = await import("@/services/telemetry")
 	const { getHooksEnabledSafe } = await import("@/core/hooks/hooks-utils")
 	const { checkRawModeSupport } = await import("./context/StdinContext")
 	const React = (await import("react")).default
@@ -813,7 +777,6 @@ async function showConfig(options: { config?: string }) {
 	// Dynamically import the wrapper to avoid circular dependencies
 	const { ConfigViewWrapper } = await import("./components/ConfigViewWrapper")
 
-	telemetryService.captureHostEvent("config_command", "executed")
 
 	await runInkApp(
 		React.createElement(ConfigViewWrapper, {
@@ -893,7 +856,6 @@ async function runAuth(options: {
 	cwd?: string
 	config?: string
 }) {
-	const { telemetryService } = await import("@/services/telemetry")
 	const { printWarning, printInfo } = await import("./utils/display")
 	const { checkRawModeSupport } = await import("./context/StdinContext")
 	const React = (await import("react")).default
@@ -944,7 +906,6 @@ async function runAuth(options: {
 
 	const hasQuickSetupFlags = hasExplicitAuthQuickSetupFlags(options)
 
-	telemetryService.captureHostEvent("auth_command", hasQuickSetupFlags ? "quick_setup" : "interactive")
 
 	// Quick setup mode - no UI, just save configuration and exit
 	if (hasQuickSetupFlags) {
@@ -958,12 +919,10 @@ async function runAuth(options: {
 
 		if (!result.success) {
 			printWarning(result.error || "Quick setup failed")
-			await telemetryService.captureHostEvent("auth", "error")
 			await disposeCliContext(ctx)
 			exit(1)
 		}
 
-		await telemetryService.captureHostEvent("auth", "completed")
 		await disposeCliContext(ctx)
 		exit(0)
 	}
@@ -977,10 +936,8 @@ async function runAuth(options: {
 			controller: ctx.controller,
 			isRawModeSupported: checkRawModeSupport(),
 			onComplete: () => {
-				telemetryService.captureHostEvent("auth", "completed")
 			},
 			onError: () => {
-				telemetryService.captureHostEvent("auth", "error")
 				authError = true
 			},
 		}),
@@ -1104,7 +1061,6 @@ async function findTaskInHistory(taskId: string): Promise<HistoryItem | null> {
  */
 async function resumeTask(taskId: string, options: TaskOptions & { initialPrompt?: string }, existingContext?: CliContext) {
 	const { printWarning, printInfo } = await import("./utils/display")
-	const { telemetryService } = await import("@/services/telemetry")
 	const { StateManager } = await import("@/core/storage/StateManager")
 	const { checkRawModeSupport } = await import("./context/StdinContext")
 	const React = (await import("react")).default
@@ -1121,11 +1077,7 @@ async function resumeTask(taskId: string, options: TaskOptions & { initialPrompt
 		exit(1)
 	}
 
-	telemetryService.captureHostEvent("resume_task_command", options.initialPrompt ? "with_prompt" : "interactive")
-
-	// Capture piped stdin telemetry now that HostProvider is initialized
 	if (options.stdinWasPiped) {
-		telemetryService.captureHostEvent("piped", "detached")
 	}
 
 	// Apply shared task options (mode, model, thinking, yolo)

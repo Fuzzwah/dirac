@@ -1,13 +1,10 @@
-import { DiracEndpoint } from "@/config"
-import { isDiracTelemetryConfigValid, diracTelemetryConfig } from "@/shared/services/config/dirac-telemetry-config"
 import { Logger } from "@/shared/services/Logger"
 import type { FeatureFlagsAndPayloads, IFeatureFlagsProvider } from "./providers/IFeatureFlagsProvider"
-import { DiracFeatureFlagsProvider } from "./providers/DiracFeatureFlagsProvider"
 
 /**
  * Supported feature flags provider types
  */
-export type FeatureFlagsProviderType = "dirac" | "no-op"
+export type FeatureFlagsProviderType = "no-op"
 
 /**
  * Configuration for feature flags providers
@@ -28,9 +25,6 @@ export class FeatureFlagsProviderFactory {
 	 */
 	public static createProvider(config: FeatureFlagsProviderConfig): IFeatureFlagsProvider {
 		switch (config.type) {
-			case "dirac": {
-				return new DiracFeatureFlagsProvider()
-			}
 			default:
 				return new NoOpFeatureFlagsProvider()
 		}
@@ -41,14 +35,7 @@ export class FeatureFlagsProviderFactory {
 	 * @returns Default configuration using Dirac, or no-op for self-hosted mode
 	 */
 	public static getDefaultConfig(): FeatureFlagsProviderConfig {
-		// Use no-op provider in self-hosted mode to avoid external network calls
-		if (DiracEndpoint.isSelfHosted()) {
-			return { type: "no-op" }
-		}
-		const hasValidConfig = isDiracTelemetryConfigValid(diracTelemetryConfig)
-		return {
-			type: hasValidConfig ? "dirac" : "no-op",
-		}
+		return { type: "no-op" }
 	}
 }
 

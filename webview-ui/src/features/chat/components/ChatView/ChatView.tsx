@@ -56,7 +56,6 @@ const ChatViewContent = ({ isHidden, showAnnouncement, hideAnnouncement, showHis
 	const messages = useChatStore((state) => state.diracMessages)
 	const taskHistory = useTaskStore((state) => state.taskHistory)
 	const apiConfiguration = useSettingsStore((state: any) => state.apiConfiguration)
-	const telemetrySetting = useSettingsStore((state) => state.telemetrySetting)
 	const mode = useSettingsStore((state) => state.mode)
 	const userInfo = useUserStore((state) => state.userInfo)
 	const hooksEnabled = useSettingsStore((state) => state.hooksEnabled)
@@ -198,7 +197,6 @@ const ChatViewContent = ({ isHidden, showAnnouncement, hideAnnouncement, showHis
 							showAnnouncement={showAnnouncement}
 							showHistoryView={showHistoryView}
 							taskHistory={taskHistory}
-							telemetrySetting={telemetrySetting}
 							version={version}
 						/>
 					)}

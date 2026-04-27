@@ -252,9 +252,6 @@ export class StateServiceClient extends ProtoBusClient {
     static async updateTaskSettings(request: proto.dirac.UpdateTaskSettingsRequest): Promise<proto.dirac.Empty> {
 		return this.makeUnaryRequest("updateTaskSettings", request, proto.dirac.UpdateTaskSettingsRequest.toJSON, proto.dirac.Empty.fromJSON)
 	}
-    static async updateTelemetrySetting(request: proto.dirac.TelemetrySettingRequest): Promise<proto.dirac.Empty> {
-		return this.makeUnaryRequest("updateTelemetrySetting", request, proto.dirac.TelemetrySettingRequest.toJSON, proto.dirac.Empty.fromJSON)
-	}
     static async captureOnboardingProgress(request: proto.dirac.OnboardingProgressRequest): Promise<proto.dirac.Empty> {
 		return this.makeUnaryRequest("captureOnboardingProgress", request, proto.dirac.OnboardingProgressRequest.toJSON, proto.dirac.Empty.fromJSON)
 	}
@@ -287,9 +284,6 @@ export class StateServiceClient extends ProtoBusClient {
 	}
     static async flushPendingState(request: proto.dirac.EmptyRequest): Promise<proto.dirac.Empty> {
 		return this.makeUnaryRequest("flushPendingState", request, proto.dirac.EmptyRequest.toJSON, proto.dirac.Empty.fromJSON)
-	}
-    static async testOtelConnection(request: proto.dirac.EmptyRequest): Promise<proto.dirac.TestConnectionResult> {
-		return this.makeUnaryRequest("testOtelConnection", request, proto.dirac.EmptyRequest.toJSON, proto.dirac.TestConnectionResult.fromJSON)
 	}
     static async testPromptUploading(request: proto.dirac.EmptyRequest): Promise<proto.dirac.TestConnectionResult> {
 		return this.makeUnaryRequest("testPromptUploading", request, proto.dirac.EmptyRequest.toJSON, proto.dirac.TestConnectionResult.fromJSON)

@@ -15,7 +15,6 @@ import { ErrorService } from "./services/error";
 import { featureFlagsService } from "./services/feature-flags";
 import { getDistinctId } from "./services/logging/distinctId";
 import { SymbolIndexService } from "./services/symbol-index/SymbolIndexService";
-import { telemetryService } from "./services/telemetry";
 // Legacy telemetry removed
 import { DiracTempManager } from "./services/temp";
 import { cleanupTestMode } from "./services/test/TestMode";
@@ -76,7 +75,6 @@ export async function initialize(storageContext: StorageContext): Promise<DiracW
 	// Clean up orphaned file context warnings (startup cleanup)
 	FileContextTracker.cleanupOrphanedWarnings(stateManager)
 
-	telemetryService.captureExtensionActivated()
 
 	// =============== Symbol Index Service ===============
 	// Initialize symbol index for the project in background with a delay to avoid blocking startup
@@ -175,8 +173,6 @@ async function checkWorktreeAutoOpen(stateManager: StateManager): Promise<void> 
  */
 export async function tearDown(): Promise<void> {
 	AgentConfigLoader.getInstance()?.dispose()
-	// Legacy telemetry removed
-	telemetryService.dispose()
 	ErrorService.get().dispose()
 	featureFlagsService.dispose()
 	// Dispose all webview instances

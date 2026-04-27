@@ -8,7 +8,6 @@ import { DEFAULT_AUTO_APPROVAL_SETTINGS } from "@shared/AutoApprovalSettings"
 import type { ApiProvider, ModelInfo } from "@shared/api"
 import { getProviderModelIdKey, isSettingsKey, ProviderToApiKeyMap } from "@shared/storage"
 import { isOpenaiReasoningEffort, OPENAI_REASONING_EFFORT_OPTIONS, type OpenaiReasoningEffort } from "@shared/storage/types"
-import type { TelemetrySetting } from "@shared/TelemetrySetting"
 import { Box, Text, useInput } from "ink"
 import Spinner from "ink-spinner"
 import React, { useCallback, useEffect, useMemo, useState } from "react"
@@ -197,9 +196,6 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 	// Other tab state
 	const [preferredLanguage, setPreferredLanguage] = useState<string>(
 		() => stateManager.getGlobalSettingsKey("preferredLanguage") || "English",
-	)
-	const [telemetry, setTelemetry] = useState<TelemetrySetting>(
-		() => stateManager.getGlobalSettingsKey("telemetrySetting") || "unset",
 	)
 
 	// Get current provider and model info
@@ -512,13 +508,6 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 			case "other":
 				return [
 					{ key: "language", label: "Preferred language", type: "editable", value: preferredLanguage },
-					{
-						key: "telemetry",
-						label: "Error/usage reporting",
-						type: "checkbox",
-						value: telemetry !== "disabled",
-						description: "Help improve Dirac by sending anonymous usage data",
-					},
 					{ key: "separator", label: "", type: "separator", value: "" },
 					{ key: "version", label: "", type: "readonly", value: `Dirac v${CLI_VERSION}` },
 				]
@@ -539,7 +528,6 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 		autoApproveSettings,
 		features,
 		preferredLanguage,
-		telemetry,
 	])
 
 	// Reset selection when changing tabs
@@ -712,18 +700,6 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 			return
 		}
 
-		// Other tab
-		if (item.key === "telemetry") {
-			const newTelemetry: TelemetrySetting = newValue ? "enabled" : "disabled"
-			setTelemetry(newTelemetry)
-			stateManager.setGlobalState("telemetrySetting", newTelemetry)
-			// Flush synchronously before continuing - must complete before app can exit
-			void stateManager.flushPendingState().then(() => {
-				// Update telemetry providers to respect the new setting
-				controller?.updateTelemetrySetting(newTelemetry)
-			})
-			return
-		}
 
 		// Auto-approve actions
 		if (item.key === "enableNotifications") {

@@ -11,7 +11,6 @@ import type {
 } from "@generated/hosts/host-bridge-client-types"
 import type { HostBridgeClientProvider, StreamingCallbacks } from "@hosts/host-provider-types"
 import * as proto from "@shared/proto/index"
-import { StateManager } from "@/core/storage/StateManager"
 import { DiracClient } from "@/shared/dirac"
 import { version as CLI_VERSION } from "../../package.json"
 import { printError, printInfo, printWarning } from "../utils/display"
@@ -81,12 +80,6 @@ export class CliDiffServiceClient implements DiffServiceClientInterface {
 export class CliEnvServiceClient implements EnvServiceClientInterface {
 	private clipboardContent = ""
 
-	private getTelemetrySetting(): proto.host.Setting {
-		// Read from StateManager - defaults to ENABLED if not set or "unset"
-		const setting = StateManager.get().getGlobalSettingsKey("telemetrySetting")
-		return setting === "disabled" ? proto.host.Setting.DISABLED : proto.host.Setting.ENABLED
-	}
-
 	async clipboardWriteText(request: proto.dirac.StringRequest): Promise<proto.dirac.Empty> {
 		this.clipboardContent = request.value || ""
 		printInfo(`📋 Copied to clipboard`)
@@ -112,7 +105,7 @@ export class CliEnvServiceClient implements EnvServiceClientInterface {
 
 	async getTelemetrySettings(_request: proto.dirac.EmptyRequest): Promise<proto.host.GetTelemetrySettingsResponse> {
 		return proto.host.GetTelemetrySettingsResponse.create({
-			isEnabled: this.getTelemetrySetting(),
+			isEnabled: proto.host.Setting.UNSUPPORTED,
 		})
 	}
 
@@ -123,7 +116,7 @@ export class CliEnvServiceClient implements EnvServiceClientInterface {
 		// Send initial settings
 		callbacks.onResponse(
 			proto.host.TelemetrySettingsEvent.create({
-				isEnabled: this.getTelemetrySetting(),
+				isEnabled: proto.host.Setting.UNSUPPORTED,
 			}),
 		)
 		// Return unsubscribe function
