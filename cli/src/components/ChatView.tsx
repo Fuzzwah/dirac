@@ -1265,10 +1265,11 @@ export const ChatView: React.FC<ChatViewProps> = ({
 		// 8. Handle button actions (1 for primary, 2 for secondary)
 		// Only when buttons are enabled, not streaming, and no text has been typed
 		if (
+			pendingAsk &&
 			buttonConfig.enableButtons &&
 			!isSpinnerActive &&
 			textInput === "" &&
-			!isYoloSuppressed(yolo, pendingAsk?.ask as DiracAsk | undefined)
+			!isYoloSuppressed(yolo, pendingAsk.ask as DiracAsk | undefined)
 		) {
 			const { hasPrimary, hasSecondary } = getVisibleButtons(buttonConfig)
 
@@ -1502,9 +1503,10 @@ export const ChatView: React.FC<ChatViewProps> = ({
 				)}
 
 				{/* Action buttons for tool approvals and other asks (not during streaming) */}
-				{buttonConfig.enableButtons &&
+				{pendingAsk &&
+					buttonConfig.enableButtons &&
 					!isSpinnerActive &&
-					!isYoloSuppressed(yolo, pendingAsk?.ask as DiracAsk | undefined) && (
+					!isYoloSuppressed(yolo, pendingAsk.ask as DiracAsk | undefined) && (
 						<ActionButtons config={buttonConfig} mode={mode} />
 					)}
 
